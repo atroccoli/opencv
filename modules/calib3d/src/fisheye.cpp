@@ -707,8 +707,8 @@ double cv::fisheye::calibrate(InputArrayOfArrays objectPoints, InputArrayOfArray
     IntrinsicParams currentParam;
     IntrinsicParams errors;
 
-    finalParam.isEstimate[0] = 1;
-    finalParam.isEstimate[1] = 1;
+    finalParam.isEstimate[0] = flags & CALIB_FIX_INTRINSIC ? 0 : 1;
+    finalParam.isEstimate[1] = flags & CALIB_FIX_INTRINSIC ? 0 : 1;
     finalParam.isEstimate[2] = 1;
     finalParam.isEstimate[3] = 1;
     finalParam.isEstimate[4] = flags & CALIB_FIX_SKEW ? 0 : 1;
@@ -733,10 +733,10 @@ double cv::fisheye::calibrate(InputArrayOfArrays objectPoints, InputArrayOfArray
         D.getMat().convertTo(_D, CV_64FC1);
         finalParam.Init(Vec2d(_K(0,0), _K(1, 1)),
                         Vec2d(_K(0,2), _K(1, 2)),
-                        Vec4d(flags & CALIB_FIX_K1 ? 0 : _D[0],
-                              flags & CALIB_FIX_K2 ? 0 : _D[1],
-                              flags & CALIB_FIX_K3 ? 0 : _D[2],
-                              flags & CALIB_FIX_K4 ? 0 : _D[3]),
+                        Vec4d(_D[0],
+                              _D[1],
+                              _D[2],
+                              _D[3]),
                         _K(0, 1) / _K(0, 0));
     }
     else
@@ -1141,7 +1141,7 @@ void cv::internal::projectPoints(cv::InputArray objectPoints, cv::OutputArray im
                    cv::InputArray _rvec,cv::InputArray _tvec,
                    const IntrinsicParams& param, cv::OutputArray jacobian)
 {
-    CV_Assert(!objectPoints.empty() && objectPoints.type() == CV_64FC3);
+    CV_Assert(!objectPoints.empty());
     Matx33d K(param.f[0], param.f[0] * param.alpha, param.c[0],
                        0,               param.f[1], param.c[1],
                        0,                        0,         1);
